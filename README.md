@@ -256,6 +256,51 @@ Tab **Referensi** menyediakan tabel prefix dari /8 sampai /32, kelas IP, serta r
 - Untuk prefix /0 sampai /30, perhitungan host usable mengurangi alamat network dan broadcast.
 - Pada tab Subnetting, tampilan dibatasi hingga 1.024 subnet pertama.
 
+## ☁️ Menjalankan di Google Colab
+
+Google Colab dapat digunakan untuk menyiapkan Python dan dependency proyek. Namun, aplikasi ini menggunakan **Textual TUI** (antarmuka terminal interaktif). Karena itu, jalankan aplikasinya melalui fitur **Terminal** Colab jika tersedia, bukan melalui cell notebook biasa.
+
+### 1. Buka notebook Colab
+
+Buka [Google Colab](https://colab.research.google.com/) dan buat notebook baru. Pastikan runtime menggunakan Python.
+
+### 2. Clone repository
+
+Jalankan pada satu cell:
+
+```python
+!git clone https://github.com/0xNanzaa25/Calculator-IP.git
+```
+
+### 3. Masuk ke folder proyek
+
+```python
+%cd /content/Calculator-IP
+```
+
+### 4. Instal dependency
+
+```python
+!python -m pip install --upgrade pip
+!python -m pip install textual rich
+```
+
+### 5. Jalankan melalui Terminal Colab
+
+1. Buka panel **Terminal** di Colab (jika tersedia pada akun/runtime kamu).
+2. Jalankan perintah berikut:
+
+```bash
+cd /content/Calculator-IP
+python ipcalc.py
+```
+
+Jika Terminal tidak tersedia, aplikasi TUI ini tidak dapat digunakan secara penuh dari cell notebook biasa. Cell Colab tidak menyediakan pengalaman terminal interaktif yang dibutuhkan untuk navigasi keyboard dan tampilan Textual.
+
+**Penting:** langkah di atas menyiapkan environment dan menjalankan aplikasi dari terminal. Pastikan file `ipcalc.py` memang tersedia di repository. Instalasi dependency saja tidak akan membuat file aplikasi yang belum ada menjadi tersedia.
+
+---
+
 ## 🛠️ Troubleshooting
 
 **Error `ModuleNotFoundError: No module named 'textual'` atau `rich`**
