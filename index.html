@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IP Calc · Kalkulator Jaringan</title>
+<meta name="description" content="Kalkulator IP, subnet, VLSM, netmask dan konversi untuk TKJ. Developer AndraxC2.">
+<meta name="theme-color" content="#0d0a15">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0a15;--t:#e7e5ee;--m:#9a98a8;--d:#6b6978;--p:#a855f7;--v:#7c3aed;--l:#c084fc;--pl:#eadcff;--bd:rgba(168,85,247,.2);--ok:#86efac;--er:#fca5a5;--mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg)}
+body{font:15px/1.65 Sora,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--t);min-height:100vh;-webkit-font-smoothing:antialiased;background:radial-gradient(60% 45% at 12% 0,rgba(124,58,237,.24),transparent 62%),radial-gradient(50% 40% at 92% 100%,rgba(168,85,247,.13),transparent 60%),var(--bg)}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+::selection{background:var(--v);color:#fff}
+:focus-visible{outline:2px solid var(--l);outline-offset:2px}
+
+/* splash */
+#splash{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--bg);text-align:center;padding:24px;transition:opacity .8s,filter .8s,transform .8s;cursor:pointer}
+#splash.out{opacity:0;filter:blur(14px);transform:scale(1.05);pointer-events:none}
+.logo{display:flex;justify-content:center;font:800 clamp(54px,15vw,116px)/1 Sora,sans-serif;letter-spacing:.03em}
+.logo span{display:inline-block;opacity:0;text-shadow:0 0 44px rgba(168,85,247,.6);animation:pop .9s cubic-bezier(.2,.9,.2,1) forwards}
+@keyframes pop{from{opacity:0;transform:translateY(46px) scale(.8);filter:blur(12px)}to{opacity:1;transform:none;filter:none}}
+.sp-t{margin-top:22px;min-height:1.7em;font-weight:300;font-size:clamp(14px,3.6vw,18px);letter-spacing:.42em;color:var(--pl)}
+.sp-d{margin-top:6px;font-size:13px;color:var(--d);opacity:0;animation:fi .7s 1.7s forwards}
+.sp-d b{color:var(--l);font-weight:600}
+@keyframes fi{to{opacity:1}}
+.topo{width:min(520px,92vw);margin:36px auto 0;display:flex;align-items:center;font:600 11px var(--mono);color:var(--l);opacity:0;animation:fi .8s 1s forwards}
+.topo span{padding:7px 12px;border:1px solid var(--bd);border-radius:8px;background:rgba(168,85,247,.08)}
+.link{flex:1;height:1px;background:var(--d);position:relative}
+.pkt{position:absolute;top:-3px;left:0;width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 12px 3px var(--p);animation:mv 1.5s linear infinite}
+.pkt.b{animation-delay:.75s}
+@keyframes mv{to{left:calc(100% - 7px)}}
+.bar{width:min(340px,80vw);height:3px;margin:34px auto 0;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--v),var(--l))}
+.sp-m{margin-top:10px;min-height:1.5em;font:12px var(--mono);color:var(--m)}
+.hint{margin-top:24px;font-size:11px;color:var(--d)}
+
+/* app */
+#app{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:28px 20px 60px;opacity:0;transform:translateY(24px);transition:opacity .9s .15s,transform .9s .15s cubic-bezier(.2,.8,.2,1)}
+#app.ready{opacity:1;transform:none}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:.02em}
+.brand i{width:10px;height:10px;border-radius:50%;background:var(--p);box-shadow:0 0 0 0 rgba(168,85,247,.6);animation:pl 2s infinite}
+@keyframes pl{70%{box-shadow:0 0 0 12px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.dev{font-size:13px;color:var(--m)}.dev b{color:var(--l);font-weight:600}
+h2{font-weight:600;font-size:clamp(24px,4.6vw,34px);line-height:1.25;color:var(--pl)}
+.lead{color:var(--m);margin:6px 0 20px;max-width:56ch}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.02));border:1px solid var(--bd);border-radius:14px;padding:22px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.card h3{font-size:14px;font-weight:600;color:var(--l);margin-bottom:10px}
+.inrow{display:flex;gap:10px}
+input{flex:1;min-width:0;font:500 16px var(--mono);color:var(--pl);background:rgba(13,10,21,.7);border:1px solid var(--bd);border-radius:10px;padding:13px 15px;transition:border-color .25s,box-shadow .25s}
+input::placeholder{color:var(--d)}
+input:focus{outline:0;border-color:var(--p);box-shadow:0 0 0 4px rgba(168,85,247,.16)}
+input.shake{animation:sk .4s}
+@keyframes sk{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+button{font:600 14px Sora,sans-serif;cursor:pointer;border:0;color:#fff;padding:0 24px;border-radius:10px;background:linear-gradient(135deg,var(--v),var(--p));transition:transform .2s,box-shadow .25s}
+button:hover{transform:translateY(-2px);box-shadow:0 10px 26px -8px var(--p)}
+button:active{transform:none}
+.status{min-height:24px;margin-top:12px;font:13px var(--mono);color:var(--d)}
+.status.ok{color:var(--l)}.status.ok b{color:var(--pl)}.status.bad{color:var(--er)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chips button{font:12px var(--mono);padding:6px 12px;color:var(--m);background:rgba(168,85,247,.08);border:1px solid var(--bd)}
+.chips button:hover{color:var(--pl);box-shadow:none}
+.tabs{position:relative;display:flex;gap:4px;margin:30px 0 20px;border-bottom:1px solid rgba(255,255,255,.08);overflow-x:auto}
+.tabs button{background:none;color:var(--m);padding:11px 18px;border-radius:0;white-space:nowrap}
+.tabs button:hover{color:var(--pl);transform:none;box-shadow:none}
+.tabs button.on{color:var(--l)}
+.ind{position:absolute;left:0;bottom:0;height:2px;width:0;background:linear-gradient(90deg,var(--v),var(--l));transition:transform .45s cubic-bezier(.2,.8,.2,1),width .45s}
+.pane{display:none}.pane.on{display:block;animation:up .5s}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.pane>.card{margin-bottom:16px}.pane>.card input{width:100%}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px}
+.stack{display:grid;gap:16px;align-content:start}
+.kv{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 16px;padding:7px 0;font-size:14px;border-bottom:1px solid rgba(255,255,255,.04)}
+.kv span{color:var(--m)}
+.kv b{font:500 13.5px var(--mono);color:var(--t);cursor:copy;transition:color .2s}
+.kv b:hover{color:var(--pl)}
+.kv b.hi{color:var(--l);font-weight:600}.kv b.good{color:var(--ok)}.kv b.bad{color:var(--er)}
+.sep{height:10px}
+.kv,.tr{opacity:0;transform:translateY(8px);animation:up .5s calc(var(--i,0)*40ms) forwards}
+.bn code{font:12.5px var(--mono);letter-spacing:.02em}
+.bn .n{color:var(--l);font-weight:600}.bn .h{color:var(--d)}.bn i{color:var(--d);font-style:normal}
+.legend{margin-top:12px;font-size:12px;color:var(--d)}.legend b{color:var(--l)}
+.read{color:var(--m);font-size:14px;line-height:1.8}.read b{color:var(--pl);font-weight:600}
+.note{margin:0 0 12px;color:var(--m);font-size:14px}.note b{color:var(--pl)}
+.tw{overflow:auto;max-height:460px;border:1px solid var(--bd);border-radius:12px}
+table{width:100%;border-collapse:collapse;font:13px var(--mono);white-space:nowrap}
+th{position:sticky;top:0;background:#241a3d;color:var(--pl);text-align:left;font-weight:600;padding:10px 14px}
+td{padding:9px 14px;color:var(--m);border-top:1px solid rgba(255,255,255,.05)}
+tr:hover td{background:rgba(168,85,247,.07)}td.hi{color:var(--l);font-weight:600}
+.err,.soft,.okc{font-size:14px}.err{color:var(--er);border-color:rgba(252,165,165,.25)}.soft{color:var(--m)}.okc{color:var(--ok)}
+.sk{position:relative;overflow:hidden;height:14px;border-radius:8px;background:rgba(255,255,255,.06)}
+.sk::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(192,132,252,.2),transparent);animation:sh 1.3s infinite}
+@keyframes sh{to{transform:translateX(100%)}}
+#toast{position:fixed;left:50%;bottom:26px;z-index:60;transform:translate(-50%,30px);opacity:0;padding:10px 18px;border-radius:10px;background:#241a3d;border:1px solid var(--bd);font:13px var(--mono);color:var(--pl);transition:.35s;pointer-events:none}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+footer{margin-top:44px;text-align:center;font-size:12px;color:var(--d)}footer b{color:var(--l);font-weight:600}
+@media(max-width:560px){.inrow{flex-direction:column}button{padding:13px 24px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<div id="splash">
+  <div>
+    <h1 class="logo" id="logo" aria-label="IP CALC"></h1>
+    <p class="sp-t" id="sp-t"></p>
+    <p class="sp-d">developer ▸ <b id="sp-d"></b></p>
+    <div class="topo"><span>PC</span><i class="link"><b class="pkt"></b></i><span>Router</span><i class="link"><b class="pkt b"></b></i><span>Server</span></div>
+    <div class="bar"><i id="sp-bar"></i></div>
+    <p class="sp-m" id="sp-m"></p>
+    <p class="hint">klik atau tekan tombol apa saja untuk lanjut</p>
+  </div>
+</div>
+
+<main id="app">
+  <header class="top">
+    <div class="brand"><i></i>IP Calc</div>
+    <div class="dev">developer <b>AndraxC2</b></div>
+  </header>
+
+  <h2>Hitung jaringan tanpa ribet.</h2>
+  <p class="lead">Masukkan alamat IP lengkap dengan prefix. Hasil langsung dihitung saat kamu mengetik.</p>
+
+  <section class="card">
+    <div class="inrow">
+      <input id="ip" placeholder="192.168.1.10/24" autocomplete="off" spellcheck="false" inputmode="text" aria-label="Alamat IP dengan prefix">
+      <button id="go">Hitung</button>
+    </div>
+    <div class="status" id="status" role="status"></div>
+    <div class="chips" id="chips"></div>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <button class="on" data-t="info" role="tab">Info IP</button>
+    <button data-t="sub" role="tab">Subnetting</button>
+    <button data-t="vlsm" role="tab">VLSM</button>
+    <button data-t="conv" role="tab">Konversi</button>
+    <i class="ind"></i>
+  </nav>
+
+  <section class="pane on" id="t-info">
+    <div id="info"></div>
+    <div class="card" style="margin-top:16px"><h3>Cek satu jaringan atau tidak</h3><input id="chk" placeholder="192.168.1.77" autocomplete="off" spellcheck="false"><div id="chk-o" style="margin-top:12px"></div></div>
+  </section>
+  <section class="pane" id="t-sub">
+    <div class="card"><h3>Pecah jaringan</h3><input id="sub" placeholder="/26 atau jumlah subnet, mis. 4" autocomplete="off" spellcheck="false"></div>
+    <div id="sub-o"></div>
+  </section>
+  <section class="pane" id="t-vlsm">
+    <div class="card"><h3>Kebutuhan host tiap LAN</h3><input id="vlsm" placeholder="100, 50, 25, 10" autocomplete="off" spellcheck="false"></div>
+    <div id="vlsm-o"></div>
+  </section>
+  <section class="pane" id="t-conv">
+    <div class="card"><h3>IP, prefix, atau netmask</h3><input id="conv" placeholder="192.168.1.1  ·  /26  ·  255.255.255.192" autocomplete="off" spellcheck="false"></div>
+    <div id="conv-o"></div>
+  </section>
+
+  <footer>Dibuat oleh <b>AndraxC2</b> · klik nilai hasil untuk menyalin</footer>
+</main>
+<div id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+class E extends Error{constructor(m,s){super(m);this.s=s}}
+
+/* ---------- logika jaringan ---------- */
+const ip2n=s=>{const m=/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(s.trim());if(!m||m.slice(1).some(x=>+x>255))throw new E(`IP '${s.trim()}' tidak valid (format 0-255.0-255.0-255.0-255)`);return((+m[1]<<24)|(+m[2]<<16)|(+m[3]<<8)|+m[4])>>>0};
+const n2ip=n=>[n>>>24,n>>>16&255,n>>>8&255,n&255].join('.');
+const mk=p=>p===0?0:(0xFFFFFFFF<<(32-p))>>>0;
+const fmt=n=>n.toLocaleString('id-ID');
+const ones=n=>n.toString(2).split('1').length-1;
+function pc(raw){
+  raw=raw.trim();
+  if(!raw.includes('/'))throw new E('Prefix wajib diisi! Contoh: 192.168.1.10/24');
+  const i=raw.indexOf('/'),ip=ip2n(raw.slice(0,i)),s=raw.slice(i+1).trim();let p;
+  if(!s)throw new E('Prefix masih kosong. Contoh: /24');
+  if(/^\d+$/.test(s)){p=+s;if(p>32)throw new E('Prefix harus /0 sampai /32')}
+  else{const m=ip2n(s),inv=~m>>>0;if(inv&(inv+1))throw new E('Netmask tidak valid (bit 1 harus berurutan)');p=ones(m)}
+  return{ip,p};
+}
+function calc(ip,p){
+  const mask=mk(p),wild=(~mask)>>>0,net=(ip&mask)>>>0,bc=(net|wild)>>>0,total=2**(32-p);let f,l,u;
+  if(p===32){f=l=net;u=1}else if(p===31){f=net;l=bc;u=2}else{f=net+1;l=bc-1;u=total-2}
+  return{ip,p,mask,wild,net,bc,total,f,l,u};
+}
+const cls=ip=>{const o=ip>>>24;return o===0?['—','Reserved (0.0.0.0/8)',0]:o<128?['A','1–127 (default /8)',8]:o<192?['B','128–191 (default /16)',16]:o<224?['C','192–223 (default /24)',24]:o<240?['D','224–239 (Multicast)',0]:['E','240–255 (Reserved)',0]};
+const KS=[['0.0.0.0',8,'This network (reserved)'],['127.0.0.0',8,'Loopback'],['169.254.0.0',16,'Link-local (APIPA)'],['10.0.0.0',8,'Private (RFC 1918)'],['172.16.0.0',12,'Private (RFC 1918)'],['192.168.0.0',16,'Private (RFC 1918)'],['100.64.0.0',10,'CGNAT (Shared Address Space)'],['224.0.0.0',4,'Multicast'],['255.255.255.255',32,'Limited Broadcast'],['240.0.0.0',4,'Reserved (Class E)']];
+const kind=ip=>{for(const[b,p,n]of KS)if(((ip&mk(p))>>>0)===ip2n(b))return n;return'Public'};
+const blk=(mask,p)=>{const i=Math.min(p>>3,3);return[i+1,256-((mask>>>(24-8*i))&255)]};
+const b32=n=>n.toString(2).padStart(32,'0');
+const bin=(n,p)=>{let s='';const b=b32(n);for(let i=0;i<32;i++){if(i&&i%8===0)s+='<i>.</i>';s+=`<span class="${i<p?'n':'h'}">${b[i]}</span>`}return s};
+const dots=n=>b32(n).match(/.{8}/g).join('.');
+
+/* ---------- rendering + skeleton ---------- */
+const W=[90,62,76,50,84,68];
+const skl=n=>Array.from({length:n},(_,i)=>`<div class="sk" style="width:${W[i%6]}%;margin:14px 0"></div>`).join('');
+const skCard=n=>`<div class="card"><div class="sk" style="width:34%;height:18px"></div>${skl(n)}</div>`;
+const SK={info:`<div class="grid">${skCard(10)}<div class="stack">${skCard(3)}${skCard(4)}</div></div>`,tbl:`<div class="card">${skl(8)}</div>`,one:`<div class="sk" style="width:58%"></div>`};
+const tm={};
+function run(id,fn,sk){
+  const el=$('#'+id);clearTimeout(tm[id]);let h;
+  try{h=fn()}catch(e){if(!(e instanceof E))throw e;el.innerHTML=`<div class="card ${e.s?'soft':'err'}">${e.s?'':'✖ '}${e.message}</div>`;return}
+  if(h==null){el.innerHTML='';return}
+  el.innerHTML=sk;
+  tm[id]=setTimeout(()=>{el.innerHTML=h;el.querySelectorAll('.kv,.tr').forEach((n,i)=>n.style.setProperty('--i',Math.min(i,22)))},400);
+}
+const kv=(k,v,h)=>`<div class="kv"><span>${k}</span><b${h?' class="hi"':''} data-c="${v}">${v}</b></div>`;
+const SEP='<div class="sep"></div>';
+const WEL=`<div class="card soft"><h3>Mulai dari sini</h3><p class="read">Ketik IP beserta prefix di kolom atas, misalnya <b>192.168.1.10/24</b>. Netmask juga boleh: <b>192.168.1.10/255.255.255.0</b>. Setelah itu coba tab Subnetting dan VLSM untuk memecah jaringan.</p></div>`;
+
+function infoHTML(r){
+  const{ip,p,mask,wild,net,bc,total,f,l,u}=r,[c,cn,dp]=cls(ip),[oc,inc]=blk(mask,p),S=n2ip;
+  const role=p<31&&ip===net?['Network address, bukan host','bad']:p<31&&ip===bc?['Broadcast address, bukan host','bad']:['Host valid','good'];
+  let cf='';if(dp)cf=p>dp?` Kelas ${c} default /${dp} di-subnet-kan dengan meminjam ${p-dp} bit, jadi ada ${fmt(2**(p-dp))} subnet.`:p<dp?` Prefix lebih kecil dari default kelas ${c} (/${dp}), berarti supernet atau CIDR summarization.`:` Prefix sama dengan default kelas ${c} (classful).`;
+  const left=kv('IP address',S(ip))+kv('Prefix','/'+p)+kv('Netmask',S(mask))+kv('Wildcard',S(wild))+SEP+kv('Network ID',S(net),1)+kv('Broadcast',S(bc),1)+kv('Host pertama',S(f))+kv('Host terakhir',S(l))+SEP+kv('Jumlah host',fmt(u)+' host')+kv('Total alamat',fmt(total)+' (2^'+(32-p)+')')+kv('Bit network/host',p+' / '+(32-p))+kv('Blok subnet',inc+' (oktet ke-'+oc+')')+SEP+kv('Kelas',c+' · '+cn)+kv('Tipe',kind(ip))+`<div class="kv"><span>Peran IP</span><b class="${role[1]}">${role[0]}</b></div>`;
+  const bn=(k,n)=>`<div class="kv bn"><span>${k}</span><code>${bin(n,p)}</code></div>`;
+  const rd=`<b>${S(ip)}/${p}</b> berada di jaringan <b>${S(net)}/${p}</b>. Dari 32 bit, ${p} bit dipakai network dan ${32-p} bit untuk host, jadi 2<sup>${32-p}</sup> = ${fmt(total)} alamat dan <b>${fmt(u)} bisa dipakai host</b>. Rentang host ${S(f)} sampai ${S(l)}, broadcast ${S(bc)}. Blok subnet ${inc} pada oktet ke-${oc}.${cf}`;
+  return`<div class="grid"><div class="card"><h3>Hasil</h3>${left}</div><div class="stack"><div class="card"><h3>Biner</h3>${bn('IP',ip)}${bn('Netmask',mask)}${bn('Network',net)}<p class="legend"><b>■</b> bit network &nbsp; ■ bit host</p></div><div class="card"><h3>Penjelasan</h3><p class="read">${rd}</p></div></div></div>`;
+}
+
+let cur=null,deb;
+function main(){
+  const v=$('#ip').value,st=$('#status');cur=null;
+  try{
+    if(!v.trim())throw new E('menunggu input…',1);
+    const{ip,p}=pc(v);cur=calc(ip,p);st.className='status ok';st.innerHTML=`● <b>${n2ip(ip)}/${p}</b> valid`;
+  }catch(e){
+    if(!(e instanceof E))throw e;
+    st.className='status'+(e.s?'':' bad');st.textContent=(e.s?'○ ':'✖ ')+e.message;
+    if(!e.s){const i=$('#ip');i.classList.remove('shake');void i.offsetWidth;i.classList.add('shake')}
+  }
+  if(cur)run('info',()=>infoHTML(cur),SK.info);else{clearTimeout(tm.info);$('#info').innerHTML=WEL}
+  sub();vl();chk();
+}
+
+function chk(){run('chk-o',()=>{
+  const v=$('#chk').value.trim();if(!v)return null;
+  if(!cur)throw new E('Isi IP/prefix utama yang valid dulu.',1);
+  const o=ip2n(v.split('/')[0]),n=cur.net,p=cur.p;
+  if(((o&cur.mask)>>>0)===n){
+    const x=p<31&&o===n?' (tapi ini network address)':p<31&&o===cur.bc?' (tapi ini broadcast address)':'';
+    return`<div class="okc">✔ ${n2ip(o)} satu jaringan dengan ${n2ip(n)}/${p}${x}</div>`;
+  }
+  return`<div class="err" style="border:0">✖ ${n2ip(o)} beda jaringan (network-nya ${n2ip((o&cur.mask)>>>0)}/${p}), butuh router</div>`;
+},SK.one)}
+
+const tbl=(h,rows)=>`<div class="tw"><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+const tr=a=>`<tr class="tr">${a.map((x,i)=>`<td${i===1?' class="hi"':''}>${x}</td>`).join('')}</tr>`;
+
+function sub(){run('sub-o',()=>{
+  if(!cur)throw new E('Isi IP/prefix valid dulu di kolom atas.',1);
+  const s=$('#sub').value.trim(),{net,p}=cur;
+  if(!s)throw new E(`Jaringan induk ${n2ip(net)}/${p}. Isi prefix baru (/26) atau jumlah subnet (4).`,1);
+  let np,rd=0;
+  if(s[0]==='/'){if(!/^\/\d+$/.test(s))throw new E('Format prefix: /26');np=+s.slice(1)}
+  else{if(!/^\d+$/.test(s)||+s<1)throw new E('Isi /prefix (mis. /26) atau jumlah subnet (mis. 4)');const b=Math.ceil(Math.log2(+s));rd=+s!==2**b;np=p+b}
+  if(np<p)throw new E(`Prefix baru harus ≥ /${p}`);
+  if(np>32)throw new E('Prefix melebihi /32, bit host tidak cukup');
+  const cnt=2**(np-p),step=2**(32-np),show=Math.min(cnt,256);let rows='';
+  for(let i=0;i<show;i++){const r=calc(net+i*step,np);rows+=tr([i+1,n2ip(r.net)+'/'+np,n2ip(r.f),n2ip(r.l),n2ip(r.bc),fmt(r.u)])}
+  const r0=calc(net,np);
+  return`<p class="note"><b>${n2ip(net)}/${p}</b> menjadi <b>${fmt(cnt)} subnet /${np}</b>, masing-masing ${fmt(r0.u)} host, netmask ${n2ip(r0.mask)}${rd?' (jumlah dibulatkan ke pangkat 2)':''}${cnt>show?`. Ditampilkan ${show} pertama.`:''}</p>`+tbl(['#','Network','Host pertama','Host terakhir','Broadcast','Host'],rows);
+},SK.tbl)}
+
+function vl(){run('vlsm-o',()=>{
+  if(!cur)throw new E('Isi IP/prefix valid dulu di kolom atas.',1);
+  const s=$('#vlsm').value.trim(),{net,p,total}=cur;
+  if(!s)throw new E(`Jaringan induk ${n2ip(net)}/${p} (${fmt(total)} alamat). Contoh: 100, 50, 25, 10`,1);
+  const needs=s.split(/[,\s;]+/).filter(Boolean);
+  if(needs.some(x=>!/^\d+$/.test(x)))throw new E('Hanya angka, dipisah koma');
+  const nn=needs.map(Number);if(nn.some(n=>n<1))throw new E('Kebutuhan host harus ≥ 1');
+  let c=net,used=0,rows='',bad=[];
+  nn.map((h,i)=>[i+1,h]).sort((a,b)=>b[1]-a[1]||a[0]-b[0]).forEach(([i,h])=>{
+    const bits=Math.max(2,Math.ceil(Math.log2(h+2))),size=2**bits;
+    if(bits>32||c+size-1>cur.bc){bad.push(`LAN ${i} (${h})`);return}
+    const r=calc(c,32-bits);
+    rows+=tr(['LAN '+i,n2ip(r.net)+'/'+r.p,h,n2ip(r.mask),n2ip(r.f)+' – '+n2ip(r.l),n2ip(r.bc),fmt(r.u)]);
+    c+=size;used+=size;
+  });
+  return`<p class="note">Terpakai <b>${fmt(used)} dari ${fmt(total)}</b> alamat (${(used*100/total).toFixed(1)}%), diurutkan dari kebutuhan terbesar.${bad.length?` <span style="color:var(--er)">Tidak muat: ${bad.join(', ')}.</span>`:''}</p>`+tbl(['LAN','Network','Butuh','Netmask','Range host','Broadcast','Host'],rows);
+},SK.tbl)}
+
+function conv(){run('conv-o',()=>{
+  const v=$('#conv').value.trim();
+  if(!v)throw new E('Ketik IP (192.168.1.1), prefix (/26), atau netmask (255.255.255.192).',1);
+  let rows;
+  if(v[0]==='/'){
+    if(!/^\/\d+$/.test(v)||+v.slice(1)>32)throw new E('Prefix harus /0 sampai /32');
+    const p=+v.slice(1),r=calc(0,p),[,inc]=blk(r.mask,p);
+    rows=kv('Prefix','/'+p)+kv('Netmask',n2ip(r.mask),1)+kv('Wildcard',n2ip(r.wild))+kv('Netmask biner',dots(r.mask))+kv('Netmask hex','0x'+r.mask.toString(16).toUpperCase().padStart(8,'0'))+kv('Total alamat',fmt(r.total))+kv('Host usable',fmt(r.u))+kv('Blok subnet',inc);
+  }else{
+    let n;try{n=ip2n(v)}catch(e){throw new E('Bukan IP, /prefix, atau netmask yang valid')}
+    const inv=~n>>>0;
+    rows=kv('Desimal',n2ip(n),1)+kv('Biner',dots(n))+kv('Hex','0x'+n.toString(16).toUpperCase().padStart(8,'0'))+kv('Integer',fmt(n))+kv('Kelas',cls(n)[0])+kv('Tipe',kind(n))+(n&&!(inv&(inv+1))?kv('Sebagai netmask','valid → /'+ones(n),1):'');
+  }
+  return`<div class="card"><h3>Hasil konversi</h3>${rows}</div>`;
+},SK.tbl)}
+
+/* ---------- UI ---------- */
+$('#ip').addEventListener('input',()=>{clearTimeout(deb);deb=setTimeout(main,260)});
+$('#ip').addEventListener('keydown',e=>{if(e.key==='Enter'){clearTimeout(deb);main()}});
+$('#go').onclick=()=>{clearTimeout(deb);main()};
+$('#chk').oninput=()=>chk();$('#sub').oninput=()=>sub();$('#vlsm').oninput=()=>vl();$('#conv').oninput=()=>conv();
+['192.168.1.10/24','10.10.10.5/8','172.16.5.4/20','192.168.100.77/26'].forEach(x=>{
+  const b=document.createElement('button');b.textContent=x;b.onclick=()=>{$('#ip').value=x;main()};$('#chips').appendChild(b);
+});
+const tabs=$$('.tabs button');
+function ind(b){const i=$('.ind');i.style.width=b.offsetWidth+'px';i.style.transform=`translateX(${b.offsetLeft}px)`}
+tabs.forEach(b=>b.onclick=()=>{tabs.forEach(x=>x.classList.toggle('on',x===b));$$('.pane').forEach(p=>p.classList.toggle('on',p.id==='t-'+b.dataset.t));ind(b)});
+addEventListener('resize',()=>ind($('.tabs .on')));
+let tt;document.addEventListener('click',e=>{const c=e.target.closest('[data-c]');if(!c)return;navigator.clipboard&&navigator.clipboard.writeText(c.dataset.c).then(()=>{const t=$('#toast');t.textContent='Tersalin: '+c.dataset.c;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1400)})});
+main();conv();
+
+/* ---------- latar jaringan ---------- */
+(()=>{
+  const c=$('#bg'),x=c.getContext('2d'),R=matchMedia('(prefers-reduced-motion:reduce)').matches;let w,h,P;
+  const rs=()=>{w=c.width=innerWidth;h=c.height=innerHeight;P=Array.from({length:Math.min(70,w/20|0)},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3}))};
+  rs();addEventListener('resize',rs);
+  (function f(){
+    x.clearRect(0,0,w,h);
+    for(const a of P){
+      a.x+=a.vx;a.y+=a.vy;if(a.x<0||a.x>w)a.vx*=-1;if(a.y<0||a.y>h)a.vy*=-1;
+      x.fillStyle='rgba(192,132,252,.55)';x.fillRect(a.x,a.y,2,2);
+      for(const b of P){const d=Math.hypot(a.x-b.x,a.y-b.y);if(d<130){x.strokeStyle=`rgba(168,85,247,${.14*(1-d/130)})`;x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke()}}
+    }
+    if(!R)requestAnimationFrame(f);
+  })();
+})();
+
+/* ---------- splash ---------- */
+(()=>{
+  const lg=$('#logo'),A=[233,213,255],B=[139,92,246];
+  [...'IP CALC'].forEach((ch,i)=>{
+    const s=document.createElement('span'),t=i/6;
+    s.textContent=ch===' '?'\u00a0':ch;
+    s.style.animationDelay=(.2+i*.09)+'s';
+    s.style.color=`rgb(${A.map((a,k)=>Math.round(a+(B[k]-a)*t))})`;
+    lg.appendChild(s);
+  });
+  const type=(el,txt,delay,sp)=>setTimeout(()=>{let i=0;const t=setInterval(()=>{el.textContent=txt.slice(0,++i);if(i>=txt.length)clearInterval(t)},sp)},delay);
+  type($('#sp-t'),'KALKULATOR IP',900,70);
+  type($('#sp-d'),'AndraxC2',1900,80);
+  const M=[[0,'Memuat modul jaringan…'],[.3,'Menyiapkan mesin subnet…'],[.62,'Menghitung tabel VLSM…'],[.95,'Siap digunakan']];
+  const t0=performance.now(),D=3600;let done=0;
+  const iv=setInterval(()=>{
+    const p=Math.min(1,(performance.now()-t0)/D);
+    $('#sp-bar').style.width=p*100+'%';
+    $('#sp-m').textContent=M.filter(m=>p>=m[0]).pop()[1];
+    if(p>=1)end();
+  },40);
+  function end(){
+    if(done)return;done=1;clearInterval(iv);
+    $('#splash').classList.add('out');
+    $('#app').classList.add('ready');
+    setTimeout(()=>{$('#splash').remove();ind($('.tabs .on'));$('#ip').focus()},850);
+    setTimeout(()=>ind($('.tabs .on')),200);
+  }
+  $('#splash').addEventListener('click',end);
+  addEventListener('keydown',end,{once:true});
+})();
+</script>
+</body>
+</html>
